@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block page_content %}
+<div class="x-nav">
+    <span class="layui-breadcrumb">
+        <a href="javascript:;">NewDB磁盘空间</a>
+        <a>
+          <cite>占用排名</cite></a>
+    </span>
+    <label for="searchRank"></label>
+    <input id="searchRank" type="text" name="username" placeholder="请输入搜索内容" autocomplete="off" class="layui-input"
+           data-type="reload" style="width:150px;margin-top:5px;float: right;">
+</div>
+<div class="x-body">
+    <table id="rank" lay-filter="rank"></table>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $(function () {
+        if (window.top === window.self) {
+            console.log('不能直接访问这个页面老铁！');
+            document.location.href = '/'
+        }
+    });
+
+    layui.use(['table'], function () {
+        let table = layui.table;
+
+        table.render({
+            elem: '#rank',
+            url: '/api/get/rank',
+            page: true,
+            limits: [10, 50, 100],
+            cols: [[
+                {type: 'numbers', title: 'ID', fixed: 'left'},
+                {field: 'ipaddress', title: 'IP', sort: true, width: 150},
+                {field: 'port', title: 'PORT', width: 150},
+                {field: 'datadir', title: '库目录'},
+                {field: 'db_size', title: '大小（KB）', sort: true, width: 150},
+                {field: 'update_time', title: '更新时间', width: 150},
+                {field: 'comment', title: '备注', width: 150},
+            ]],
+            id: 'rankTable'
+        })
+
+        // 搜索框功能
+        let $ = layui.$, Rankactive = {
+            reload: function () {
+                let searchRank = $('#searchRank');
+
+                table.reload('rankTable', {
+                    page: {
+                        curr: 1
+                    },
+                    where: {
+                        ipaddress: searchRank.val(),
+                        port: searchRank.val(),
+                        datadir: searchRank.val(),
+                        db_name: searchRank.val()
+                    }
+                }, 'data');
+            }
+        };
+
+        // $('#searchRegBtn').on('click', function () {
+        $('#searchRank').bind('input propertychange', function () {
+            let Ranktype = $(this).data('type');
+            Rankactive[Ranktype] ? Rankactive[Ranktype].call(this) : '';
+        });
+    })
+</script>
+{% endblock %}

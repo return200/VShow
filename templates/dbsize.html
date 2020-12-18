@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block page_content %}
+<div class="x-nav">
+    <span class="layui-breadcrumb">
+        <a href="javascript:;">NewDB磁盘空间</a>
+        <a>
+          <cite>增长趋势</cite></a>
+    </span>
+</div>
+<div class="x-body">
+    <fieldset class="layui-elem-field" style="margin-top: 20px">
+        <div class="layui-field-box">
+            <div class="layui-col-md12">
+                <div class="layui-card">
+                    <div class="layui-card-body" style="padding: 10px">
+                        <div class="layui-carousel x-admin-carousel x-admin-backlog" lay-anim=""
+                             lay-indicator="inside"
+                             lay-arrow="none" style="width: 100%; height: auto;">
+                            <ul id="char_base" class="layui-row layui-col-space10 layui-this">
+                                <div id="char_body" class="layui-row">
+                                </div>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    $(function () {
+        if (window.top === window.self) {
+            console.log('不能直接访问这个页面老铁！');
+            document.location.href = '/'
+        }
+    });
+
+    layui.use(['layer', 'flow'], function () {
+        let $ = layui.jquery,
+            layer = layui.layer,
+            flow = layui.flow;
+
+        layer.load(3, {time: 10 * 1000})
+        flow.load({
+            elem: "#char_base",
+            end: "你是要挑战我的底线吗！",
+            isAuto: true,
+            done: function (page, next) {
+                let lis = [];
+                $.get('/api/get/size?page=' + page, function (res) {
+                    // console.log(page, res.data)
+                    layui.each(res.data, function (index, item) {
+                        let host = item.host,
+                            port = item.port,
+                            date = item.date,
+                            data = item.data;
+                        let char_body = '<li class="layui-col-xs4"><div class="layui-inline" id=' + host + ' style="width:400px;height:300px;"></div></li>'
+
+                        $("#char_body").append(char_body);
+                        // $(char_body).insertBefore("#char_base .layui-flow-more")
+
+                        let char = echarts.init(document.getElementById(host));
+                        let option = {
+                            title: {
+                                text: host,
+                                link: '',
+                                target: 'self',
+                                textStyle: {
+                                    fontSize: 16
+                                }
+                            },
+                            tooltip: {
+                                trigger: 'axis'
+                            },
+                            grid: {
+                                left: '3%',
+                                right: '3%',
+                                bottom: '3%',
+                                containLabel: true,
+                            },
+                            // 滚动显示图例
+                            legend: {
+                                data: port,
+                                type: 'scroll',
+                                left: '25%'
+                            },
+                            xAxis: {
+                                type: 'category',
+                                data: date
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: data
+                        }
+
+                        char.setOption(option);
+                        // lis.push(char_body)
+                        // console.log(lis)
+                        layer.closeAll()
+                    });
+                    next(lis.join(''), page < res.count)
+                })
+            }
+        })
+    })
+</script>
+
+{% endblock %}

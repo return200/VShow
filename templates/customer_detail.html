@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}xxx用户信息{% endblock %}
+{% block page_content %}
+    <div class="stand-alone-body">
+        <!--用户基本信息-->
+        <div style="background-color: #F5F5F5;font-size: 18px;color: gray">
+            <div class="layui-row" style="padding: 10px 50px 10px 50px;">
+                <div class="layui-col-xs4 layui-col-sm4 layui-col-md3">
+                    <label for="">姓名：</label>
+                    <span>{{ customer_info["name"] }}</span>
+                </div>
+                <div class="layui-col-xs4 layui-col-sm4 layui-col-md3">
+                    <label for="">性别：</label>
+                    <span>{{ customer_info["gender"] }}</span>
+                </div>
+                <div class="layui-col-xs4 layui-col-sm4 layui-col-md3">
+                    <label for="">年龄：</label>
+                    <span>{{ customer_info["age"] }}</span>
+                </div>
+                <div class="layui-col-xs4 layui-col-sm4 layui-col-md3" style="margin-bottom: 10px">
+                    <label for="">联系方式：</label>
+                    <span>{{ customer_info["mobile"] }}</span>
+                </div>
+                <hr>
+                <div class="layui-col-xs4 layui-col-sm4 layui-col-md3">
+                    <label for="">体重：</label>
+                    <span>{{ customer_info["weight"] }} KG</span>
+                </div>
+                <div class="layui-col-xs4 layui-col-sm4 layui-col-md3">
+                    <label for="">套餐：</label>
+                    <span>{{ customer_info["package"] }}</span>
+                </div>
+                <div class="layui-col-xs4 layui-col-sm4 layui-col-md3">
+                    <label for="">套餐剩余次数：</label>
+                    {% if customer_info["package_remain"] <=5 %}
+                        <span style="color: red">{{ customer_info["package_remain"] }} 次</span>
+                    {% else %}
+                        <span style="color: green">{{ customer_info["package_remain"] }} 次</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!--用户塑形历史表格-->
+        <div id="customerDetail" lay-filter="customerDetail"></div>
+
+        <!--用户体重增长曲线-->
+        <div id="customerWeight" style="width: 100%;height:300px;background-color: #FFFFFF;"></div>
+
+    </div>
+
+    <!--签名按钮模版-->
+    <script type="text/html" id="customerSignature">
+        {{ '{{# if(d.signature){ }}' |safe }}
+        <div lay-event="getSign">
+            <img style="max-width: 100%;width:100%;height: 30px" src="data:image/png;base64,{{ '{{ d.signature }}' }}">
+        </div>
+        {{ '{{# }else{ }}' }}
+        <div lay-event="sign"
+             style="text-align:center;color: #40AFFE;font-size: 14px;font-weight: bold;user-select: none;">
+            <span>点我签名</span>
+        </div>
+        {{ '{{# } }}' }}
+    </script>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+
+
+        layui.use('table', function () {
+            let table = layui.table,
+                userMobile = "{{user_mobile}}";
+
+            table.render({
+                elem: "#customerDetail",
+                url: "/api/get/customerDetail?userMobile=" + userMobile,
+                page: true,
+                limits: [20, 50],
+                cols: [[
+                    {type: "numbers", title: "ID", fixed: "left"},
+                    {field: "name", title: "顾客姓名"},
+                    {field: "shape_parts", title: "塑形部位"},
+                    {field: "weight", title: "塑形后体重"},
+                    {field: "shape_time", title: "塑形时间"},
+                    {field: "signature", title: "顾客签名", width: 230, templet: "#customerSignature"}
+                ]]
+            })
+
+            table.on('tool(customerDetail)', function (obj) {
+                let data = obj.data,
+                    layEvent = obj.event;
+
+                let customer_mobile = data['mobile'],
+                    customer_name = data['name'],
+                    shape_time = data['shape_time'];
+
+                if (layEvent === 'sign') {
+                    layer.open({
+                        type: 2,
+                        title: '顾客姓名: ' + customer_name + ' | 手机号：' + customer_mobile + ' | 塑形时间：' + shape_time,
+                        content: '/put/signatureAdd?customer_mobile=' + customer_mobile + '&customer_name=' + customer_name + '&shape_time=' + shape_time,
+                        scrollbar: false,
+                        area: ['600px', '300px'],
+                    })
+                } else if (layEvent === 'getSign') {
+                    layer.open({
+                        type: 1,
+                        title: '客户签名',
+                        content: '<img style="padding-bottom: 10px" src="data:image/png;base64,' + data['signature'] + '">',
+                        area: ['auto', 'auto'],
+                        offset: '20%',
+                    })
+                }
+            })
+        })
+
+        let userMobile = "{{ user_mobile }}";
+        let char = echarts.init(document.getElementById('customerWeight'));
+
+        $.get('/api/get/customerWeight?userMobile=' + userMobile, function (res) {
+            let customer_weight_data = res.data,
+                xAxis_data = customer_weight_data['date'],
+                series_data = customer_weight_data['data']
+
+            console.log(xAxis_data, series_data)
+
+            let options = {
+                title: {
+                    show: false,
+                    text: '体重变化趋势',
+                    link: '',
+                    target: 'self',
+                    textStyle: {
+                        fontSize: 16
+                    },
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                grid: {
+                    top: '10%',
+                    left: '3%',
+                    right: '3%',
+                    bottom: '10%',
+                    containLabel: true,
+                },
+                // 滚动显示图例
+                //legend: {
+                //    data: port,
+                //   type: 'scroll',
+                //    left: '25%'
+                //},
+                xAxis: {
+                    type: 'category',
+                    //data: ['1', '2', '3', '4', '5', '6']
+                    data: xAxis_data
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                //series: [{name: 'xiaomei', type: 'line', data: [10, 20, 30, 4, 5, 6]}]
+                series: series_data
+            }
+            char.setOption(options)
+        })
+    </script>
+{% endblock %}

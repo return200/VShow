@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block page_content %}
+<div class="x-body">
+    <blockquote class="layui-elem-quote" style="margin-top: 20px">欢迎：
+        <span class="x-red">{{ account_name }}</span>！数据统计时间：
+        {{ update_time }}
+        &nbsp;&nbsp;
+        <a href="javascript:;" title="Click me!"><i class="iconfont">&#xe6a3;</i></a>
+    </blockquote>
+    <fieldset class="layui-elem-field">
+        <legend>数据统计
+        </legend>
+        <div class="layui-field-box">
+            <div class="layui-col-md12">
+                <div class="layui-card">
+                    <div class="layui-card-body">
+                        <div class="layui-carousel x-admin-carousel x-admin-backlog" lay-anim=""
+                             lay-indicator="inside"
+                             lay-arrow="none" style="width: 100%; height: 90px;">
+                            <!--<div carousel-item="">-->
+                            <ul class="layui-row layui-col-space12 layui-this">
+                                <li class="layui-col-xs3">
+                                    <a id="host_count" class="x-admin-backlog-body">
+                                        <h3>主机数量：</h3>
+                                        <p>
+                                            <cite>{{ host_count }}</cite>
+                                        </p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-xs3">
+                                    <a id="instance_count" class="x-admin-backlog-body">
+                                        <h3>实例数量：</h3>
+                                        <p>
+                                            <cite>{{ instance_count }}</cite>
+                                        </p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-xs3">
+                                    <a id="db_list" class="x-admin-backlog-body">
+                                        <h3>数据库数量：</h3>
+                                        <p>
+                                            <cite>{{ db_count }}</cite>
+                                        </p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-xs3">
+                                    <a id="db_size" class="x-admin-backlog-body">
+                                        <h3>数据总量：</h3>
+                                        <p>
+                                            <cite>{{ (db_size/1024/1024) |float |round(2)}} GB</cite>
+                                        </p>
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    $(function () {
+        if (window.top === window.self) {
+            console.log('不能直接访问这个页面老铁！');
+            document.location.href = '/'
+        }
+    });
+
+    $(".iconfont").on('click', function () {
+        layer.tips('数据每天0点更新', this);
+    });
+</script>
+
+{% endblock %}

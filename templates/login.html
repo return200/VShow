@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}DBSize 登录{% endblock %}
+{% block page_content %}
+<body class="login-bg">
+
+<div class="login layui-anim layui-anim-up">
+    <div class="message">DBSize 登录</div>
+    <div id="darkbannerwrap"></div>
+
+    <form method="post" class="layui-form" lay-filter="loginForm">
+        <input name="email" placeholder="用户名" type="text" lay-verify="required" class="layui-input"
+               autocomplete="off">
+        <hr class="hr15">
+        <input name="password" lay-verify="required" placeholder="密码" type="password" class="layui-input"
+               autocomplete="off">
+        <hr class="hr15">
+        <input id="catpcha" name="captcha" placeholder="验证码" type="text" lay-verify="required"
+               class="layui-input-inline"
+               style="width: 50%;" autocomplete="off">
+        <img id="vcode_img" src="/api/get/captcha" alt="验证码" title="单击刷新验证码" class="layui-inline" style="float:right">
+        <hr class="hr15">
+        <input value="登录" lay-submit lay-filter="login" style="width:100%;" type="submit">
+        <hr class="hr20">
+    </form>
+</div>
+{% endblock %}
+{% block script %}
+<script src="/static/js/sha1.js"></script>
+<script>
+    // 解决session过期后，只有iframe中跳转到login，而父页面不跳转的问题。
+    if (window !== top) {
+        top.location.href = location.href;
+    }
+
+    // $(function () {
+    layui.use('form', function () {
+        var form = layui.form;
+        // layer.msg('玩命卖萌中', function () {
+        //     //关闭后的操作
+        // });
+        //监听提交
+        form.on('submit(login)', function (data) {
+            // console.log(data.field)
+            // layer.msg(JSON.stringify(data.field), function () {
+            //     location.href = 'index.html'
+            // });
+            var params = data.field;
+            params['password'] = sha1(data.field['password'] + '4)5g463#$E');
+
+            $.ajax({
+                type: "POST",
+                url: "/api/login",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(params),
+                dataType: "json",
+                success: function (resp) {
+                    if (resp.code === 0) {
+                        layer.msg('登录成功', {
+                            icon: 1,
+                            time: 1000
+                        });
+                        // return false;
+                        document.location.href = "/";
+                    } else {
+                        layer.msg(resp.msg, {
+                            icon: 2,
+                            time: 1000
+                        }, function () {
+                            $('#vcode_img')[0].src = '/api/get/captcha';
+                            $('#catpcha').val('');
+                        });
+                    }
+                },
+                error: function (message) {
+                    layer.msg(message, {
+                        icon: 2,
+                        time: 1000
+                    }, function () {
+                        $('#vcode_img')[0].src = '/api/get/captcha';
+                        $('#catpcha').val('');
+                    });
+                }
+            });
+
+            return false;
+        });
+    });
+
+    $('#vcode_img').on('click', function () {
+        $(this)[0].src = '/api/get/captcha'
+    })
+    // });
+</script>
+{% endblock %}

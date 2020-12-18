@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block page_content %}
+    <!--搜索框-->
+<body>
+    <div id="nav-main" style="zoom: 1.1125;">
+        <div id="search">
+            <div class="search_title">用户信息</div>
+            <div id="searchout">
+                <div id="searchform">
+                    <!--  <div id="search_option">手机号：</div>-->
+                    <input type="text" id="search_input" name="search" autocomplete="off" placeholder="请输入您的手机号">
+                    <div id="searchbutton"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--搜索框下面展示部分-->
+    <!--
+    <div id="main">
+        <ul class="bxslider">
+            <li>
+                <ul>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/renren.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/zhifubao.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/sina.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/appstore.com.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/douban.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/bdlogo.gif"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/yahoo.com.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/dangdang.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/youtube.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/twitter.com.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/aiqiyi.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/appstore.com.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/amazon.com.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/youtube.com.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <ul>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/bdlogo.gif"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="case_w">
+                            <img src="static/images/google.com.png"/>
+                            <div class="fire"></div>
+                            <a href="#" class="x"></a>
+                            <a href="#" class="y"></a>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+
+        </ul>
+    </div>
+    -->
+
+    <!--左右切换箭头-->
+    <!--
+    <div id="slider-prev" class="switch_button">
+    </div>
+    <div id="slider-next" class="switch_button">
+    </div>
+    -->
+</body>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        $(function () {
+            $(".bxslider li ul li").hover(function () {
+                $(".x", this).stop().css({'left': '35px'}).animate({'left': "40px"}, 400).show();
+                $(".y", this).stop().css({'right': '35px'}).animate({'right': "40px"}, 400).show();
+                $('.fire', this).fadeIn(500);
+            }, function () {
+                // $('.x, .y',this).stop().animate({"top":"30px"},400);
+                $('.fire, .x, .y', this).fadeOut(500);
+            });
+        });
+    </script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.bxslider').bxSlider({
+                minSlides: 4,
+                maxSlides: 4,
+                nextSelector: '#slider-next',
+                prevSelector: '#slider-prev',
+                slideWidth: 240,
+                slideMargin: 0,
+                // auto: false
+            });
+        });
+    </script>
+
+    <script type="text/javascript">
+        $("#searchbutton").on('click', function (res) {
+            let userMobile = $("#search_input").val()
+            if (userMobile.length === 0) {
+                layer.msg('请输入手机号！', {icon: 5})
+            } else if (userMobile.length !== 11) {
+                layer.msg('手机号格式错误！', {icon: 5})
+            }
+        })
+    </script>
+{% endblock %}

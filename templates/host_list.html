@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block page_content %}
+<div class="x-nav">
+    <span class="layui-breadcrumb">
+        <a href="javascript:;">NewDB主机管理</a>
+        <a>
+          <cite>主机列表</cite></a>
+    </span>
+    <!--    <label for="searchRank"></label>-->
+    <!--    <input id="searchRank" type="text" name="username" placeholder="请输入搜索内容" autocomplete="off" class="layui-input"-->
+    <!--           data-type="reload" style="width:150px;margin-top:5px;float: right;">-->
+    <button id="addHostBtn" class="layui-btn layui-btn-small" style="float: right;margin-top: 5px" data-type="reload">
+        <i lay-filter="sreach" class="layui-icon">&#xe654;</i>
+    </button>
+    <script type="text/html" id="barHost">
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="delete">删除</a>
+    </script>
+</div>
+<div class="x-body">
+    <table id="hosts" lay-filter="hosts"></table>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $(function () {
+        if (window.top === window.self) {
+            console.log('不能直接访问这个页面老铁！');
+            document.location.href = '/'
+        }
+    });
+
+    layui.use(['table', 'layer'], function () {
+        let table = layui.table;
+
+        table.render({
+            elem: '#hosts',
+            url: '/api/get/hosts',
+            // page: true,
+            // limits: [10, 50, 100],
+            cols: [[
+                {type: 'numbers', title: 'ID', fixed: 'left'},
+                {field: 'id', hide: true},
+                {field: 'ipaddress', title: 'IP', sort: true, width: 150},
+                {field: 'domain', title: '域名'},
+                {field: 'update_time', title: '更新时间', width: 150},
+                {field: 'comment', title: '备注', width: 150},
+                {title: '操作', width: 80, align: 'center', toolbar: '#barHost'}
+            ]],
+            id: 'rankTable'
+        })
+
+        table.on('tool(hosts)', function (obj) {
+            let host_id = obj.data.id;
+            console.log(host_id)
+            layer.confirm('确认删除吗？', function (index) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/del/host',
+                    dataType: 'json',
+                    data: {'host_id': host_id},
+                    success: function (resp) {
+                        if (resp.code === 0) {
+                            layer.msg(resp.msg, {icon: 1}, function () {
+                                obj.del();
+                            })
+                        } else {
+                            layer.msg(resp.msg, {icon: 2})
+                        }
+                    },
+                    error: function (resp) {
+                        layer.msg('接口请求错误', {icon: 2})
+                    },
+                    complete: function (resp) {
+                        layer.close(index);
+                    }
+                });
+            })
+        })
+        $("#addHostBtn").on('click', function () {
+            // let index = layer.open({
+            layer.open({
+                type: 2,
+                title: '添加DB主机：',
+                // content: '/registry/info?registry_name=' + data['name'],
+                content: '/add/host/',
+                area: ['600px', '500px'],
+                maxmin: true,
+            });
+            // layer.full(index);
+        })
+    })
+</script>
+{% endblock %}

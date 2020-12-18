@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <title>手写板签名demo</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta charset="UTF-8">
+    <meta name="description" content="overview & stats"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+    <link rel="stylesheet" href="/static/css/xadmin.css">
+    <script src="/static/js/jquery.min.js"></script>
+    <!--是否开启刷新记忆tab功能，必须再引入xadmin.js前定义-->
+    <script> var is_remember = false; </script>
+    <script src="/static/js/xadmin.js"></script>
+    <script type="text/javascript" src="/static/js/cookie.js"></script>
+    <script src="/static/js/jSignature.min.js"></script>
+</head>
+<body>
+
+<p style="text-align: center;padding-top: 10px">
+    <b style="color: red">请在方框中签名</b>
+</p>
+
+<div id="signature" style="border: solid black 1px;height: 100%; margin: 10px"></div>
+
+<div style="float:right;margin-right: 10px;padding-bottom: 10px">
+    <button id="reset" class="layui-btn layui-btn-lg layui-btn-normal">重写</button>
+    <button id="submit" class="layui-btn layui-btn-lg layui-btn-normal">保存</button>
+</div>
+
+<script src="/static/lib/layui/layui.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var $sigdiv = $("#signature");
+        $sigdiv.jSignature(); // 初始化jSignature插件-属性用","隔开
+        // $sigdiv.jSignature({'decor-color':'red'}); // 初始化jSignature插件-设置横线颜色
+        // $sigdiv.jSignature({'lineWidth':"6"});// 初始化jSignature插件-设置横线粗细
+        // $sigdiv.jSignature({"decor-color":"transparent"});// 初始化jSignature插件-去掉横线
+        // $sigdiv.jSignature({'UndoButton':true});// 初始化jSignature插件-撤销功能
+        // $sigdiv.jSignature({'height': 100, 'width': 200}); // 初始化jSignature插件-设置书写范围(大小)
+        $("#submit").click(function () {
+            //将画布内容转换为图片
+            let signature = $sigdiv.jSignature("getData", "image");
+
+            {#$("#images").attr('src', 'data:' + 'image/png;base64' + "," + datapair[1]);#}
+            $.post('/api/put/signatureAdd', {
+                'customer_name': '{{customer_name}}',
+                'customer_mobile': '{{ customer_mobile }}',
+                'shape_time': '{{ shape_time }}',
+                'signature': signature[1]
+            }, function (res) {
+                console.log(res);
+                if (res.code === 0) {
+                    layer.msg('签名成功！', {
+                        icon: 1,
+                        time: 3000,
+                        shade: 0.8
+                    }, function () {
+                        top.location.href = '/'
+                    })
+                }
+            })
+        });
+
+        $("#reset").click(function () {
+            $("#signature").jSignature("reset"); //重置画布，可以进行重新作画
+            $("#images").attr('src', '');
+        });
+    });
+</script>
+</body>
+</html>

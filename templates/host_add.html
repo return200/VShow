@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block page_content %}
+<div class="x-body">
+    <div style="margin-top: 20px">
+        <form class="layui-form" action="" style="margin-left: 10%" s>
+            <div class="layui-form-item">
+                <label class="layui-form-label">IP：</label>
+                <div class="layui-input-inline" style="width: 250px">
+                    <input type="text" name="ipaddress" lay-verify="required|ipaddr" autocomplete="off"
+                           placeholder="必填" class="layui-input" lay-filter="ipaddress">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">域名：</label>
+                <div class="layui-input-inline" style="width: 250px">
+                    <textarea name="domains" placeholder="非必填，多个域名之间用;分隔" class="layui-textarea"
+                              style="min-height: 50px"></textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">备注：</label>
+                <div class="layui-input-inline" style="width: 250px">
+                    <textarea name="comment" placeholder="" class="layui-textarea"></textarea>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="submit" class="layui-btn" lay-submit="" lay-filter="submitBtn">立即提交</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    layui.use(['form'], function () {
+        let form = layui.form,
+            table = layui.table;
+
+        form.verify({
+            ipaddr: function (value, ipaddress) {
+                if (!new RegExp("^\\d{0,3}\\.\\d{0,3}\\.\\d{0,3}\\.\\d{0,3}$").test(value)) {
+                    return 'IP地址格式不正确！'
+                }
+            }
+        });
+        form.on('submit(submitBtn)', function (data) {
+            $.ajax({
+                type: "POST",
+                url: "/api/add/host",
+                dataType: "json",
+                data: data.field,
+                success: function (resp) {
+                    if (resp.code === 0) {
+                        layer.msg(resp.msg, {icon: 1}, function () {
+                            x_admin_father_reload();
+                        })
+                    } else {
+                        layer.msg(resp.msg, {icon: 2})
+                    }
+                },
+                error: function (resp) {
+                    layer.msg('接口错误', {icon: 3})
+                },
+                complete: function (resp) {
+                }
+            })
+            return false;
+        });
+    })
+</script>
+{% endblock %}

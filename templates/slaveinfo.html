@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block page_content %}
+<div class="x-nav">
+    <span class="layui-breadcrumb">
+        <a href="javascript:;">AllDB备份管理</a>
+        <a>
+          <cite>slave列表</cite></a>
+    </span>
+    <label for="searchSlave"></label>
+    <input id="searchSlave" type="text" name="slaveInfo" placeholder="请输入搜索内容" autocomplete="off" class="layui-input"
+           data-type="reload" style="width:150px;margin-top:5px;float: right;">
+    <!--    添加按钮-->
+    <!--    <button id="addHostBtn" class="layui-btn layui-btn-small" style="float: right;margin-top: 5px" data-type="reload">-->
+    <!--        <i lay-filter="sreach" class="layui-icon">&#xe654;</i>-->
+    <!--    </button>-->
+    <script type="text/html" id="barHost">
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="delete">删除</a>
+    </script>
+</div>
+<div class="x-body">
+    <a href="javascript:void(0);" id="s" style="display:none"></a>
+    <table id="slave" lay-filter="slave"></table>
+    <script type="text/html" id="statusTpl">
+        {{ '{{# if(d.slave_instance_inused=="1"){ }}'|safe }}
+        <input type="checkbox" name="" value=""
+               slaveHost={{ "{{ d.slave_host }}" }} slavePort={{ "{{ d.slave_port }}" }} action="stop" lay-skin="switch"
+        lay-text="已启用|未启用" lay-filter="statusBtn" checked>
+        {{ '{{# }else{ }}' }}
+        <input type="checkbox" name="" value=""
+               slaveHost={{ "{{ d.slave_host }}" }} slavePort={{ "{{ d.slave_port }}" }} action="start" lay-skin="switch"
+        lay-text="已启用|未启用" lay-filter="statusBtn">
+        {{ '{{# } }}' }}
+    </script>
+
+    <script type="text/html" id="bakStatusTpl">
+        <a href="javascript:void(0);" lay-event="log">{{ "{{d.slave_backup_state}}" }}</a>
+    </script>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    $(function () {
+        if (window.top === window.self) {
+            console.log('不能直接访问这个页面老铁！');
+            document.location.href = '/'
+        }
+    });
+
+
+    layui.use(['table', 'layer', 'form'], function () {
+        let table = layui.table,
+            form = layui.form;
+
+        table.render({
+            elem: '#slave',
+            url: '/api/get/slave',
+            page: true,
+            limits: [10, 50, 100],
+            cols: [[
+                {type: 'numbers', title: 'ID', fixed: 'left'},
+                {field: 'slave_host', title: 'HOST', sort: true, width: 100},
+                {field: 'slave_port', title: 'PORT', sort: true, width: 80},
+                {field: 'slave_instance_datadir', title: '数据目录'},
+                {field: 'slave_instance_datasize', title: '数据大小 (G)', width: 100},
+                {field: 'master_host', title: 'MASTER_HOST', width: 200},
+                {field: 'master_port', title: 'MASTER_PORT', width: 120},
+                {
+                    field: 'slave_instance_inused',
+                    title: '是否启用备份',
+                    width: 110,
+                    align: 'center',
+                    templet: '#statusTpl'
+                },
+                {
+                    field: 'slave_backup_state',
+                    title: '备份状态',
+                    width: 100,
+                    templet: '#bakStatusTpl'
+                },
+                {field: 'update_time', title: '备份时间', width: 140},
+                // {title: '操作', width: 80, align: 'center', toolbar: '#barHost'}
+            ]],
+            id: 'slaveTable'
+        });
+        // 状态切换功能开始
+        form.on('switch(statusBtn)', function (obj) {
+            layer.load(2, {time: 10 * 1000})    // 最多执行10秒钟
+
+            // 阻止状态按钮在confirm 确认之前执行ajax，从而导致提前切换状态；
+            obj.elem.checked = !obj.elem.checked;
+            form.render('checkbox');    // 切换状态后要重载 form
+
+            var slaveHost = this.getAttribute('slaveHost'), //obj.elem.attributes['business'].value 方法也可以
+                slavePort = this.getAttribute('slavePort'),
+                action = this.getAttribute('action'),
+                isActive = this.checked; // true代表当前状态为运行， false代表表当前状态为未运行
+
+            console.log('slaveHost:', slaveHost, 'slavePort:', slavePort, '当前状态:', isActive, '动作:', action);
+
+            // 按钮状态为 true 时，动作为停止，false时为启动
+            var act = isActive ? '<span style="color:red">停用</span>' : '<span style="color:green">启用</span>'
+
+            layer.confirm("确定 " + act + " " + slaveHost + ":" + slavePort + " 备份实例？", {
+                    icon: 3,
+                    title: '警告',
+                    // btn:['Yes', 'No'],   // 可以指定按钮内容（可以多个），默认索引从1开始
+                    // 点击右上角 X 的回调动作
+                    cancel: function () {
+                        layer.closeAll()
+                    },
+                    // 点击第一个按钮的回调动作，btn 为固定参数，1 为按钮列表的索引，默认从 1 开始
+                    btn1: function (index) {
+                        layer.close(index); // 关闭 confirm 对话框，而不关闭load
+                        $.ajax({
+                            url: '/api/switch/slave',
+                            type: "POST",
+                            data: {
+                                'slaveHost': slaveHost,
+                                'slavePort': slavePort,
+                                'action': action
+                            },
+                            dataType: 'json',
+                            success: function (resp) {
+                                if (resp.code === 0) {
+                                    obj.elem.attributes['action'].value = isActive ? 'start' : 'stop';  // 后台执行成功后，切换按钮的动作
+                                    obj.elem.checked = !obj.elem.checked;   // 后台执行成功后，切换按钮的状态
+                                    form.render('checkbox');
+                                    // 下边的方法也可以
+                                    // action === 'start' ? (obj.othis[0].classList.remove('layui-form-onswitch'), $(obj.othis[0]).children('em').text('Inactive')) : (obj.othis[0].classList.add('layui-form-onswitch'), $(obj.othis[0]).children('em').text('Active'));
+                                    layer.closeAll()
+                                    layer.msg('成功', {icon: 1, time: 2000})
+                                } else {
+                                    layer.closeAll()
+                                    layer.msg('失败: ' + resp.msg, {icon: 2, time: 3000})
+                                }
+                            },
+                            error: function (resp) {
+                                layer.closeAll()
+                                layer.msg(resp, {icon: 2, time: 2000})
+                            }
+                        })
+                    },
+                    // 点击第二个按钮的回调动作
+                    btn2: function () {
+                        layer.closeAll()
+                    }
+                }
+            );
+        });
+        // 状态切换功能结束
+
+        // 搜索框功能开始
+        let $ = layui.$, Slaveactive = {
+            reload: function () {
+                let searchSlave = $('#searchSlave');
+
+                table.reload('slaveTable', {
+                    page: {
+                        curr: 1
+                    },
+                    where: {
+                        slave_host: searchSlave.val(),
+                        slave_port: searchSlave.val(),
+                        slave_instance_datadir: searchSlave.val(),
+                        slave_instance_datasize: searchSlave.val(),
+                        master_host: searchSlave.val(),
+                        master_port: searchSlave.val(),
+                        slave_instance_inused: searchSlave.val(),
+                        slave_backup_state: searchSlave.val()
+                    }
+                }, 'data');
+            }
+        };
+
+        // $('#searchRegBtn').on('click', function () {
+        $('#searchSlave').bind('input propertychange', function () {
+            let Slavetype = $(this).data('type');
+            Slaveactive[Slavetype] ? Slaveactive[Slavetype].call(this) : '';
+        });
+        // 搜索框功能结束
+
+        table.on('tool(slave)', function (obj) {
+            var data = obj.data,
+                layEvent = obj.event;
+
+            let slaveHost = data['slave_host'],
+                slavePort = data['slave_port'],
+                slaveBackupState = data['slave_backup_state'];
+
+            const exceptState = ['IORunning', 'SQLRunning', 'StartingInstance', 'sync ok']
+
+            if (layEvent === 'log' && exceptState.indexOf(slaveBackupState) !== -1) {
+                layer.open({
+                    type: 2,
+                    title: slaveHost + ':' + slavePort,
+                    content: '/get/backupslavelog/' + slaveHost,
+                    scrollbar: false,
+                    area: ['800px', '600px'],
+                    end: function () {
+                        let s = $("#s").val();
+                        console.log("close", slaveHost, s);
+
+                        $.ajax({  //发送ajax请求
+                            url: 'http://' + document.domain + ':' + location.port + '/ws/closelog?ip=' + slaveHost + '&s=' + s,
+                            type: "get",
+                            success: function (arg) {
+                                //arg = JSON.parse(arg);
+                                console.log(arg);
+                            },
+                            error: function () {
+                                console.log("网络请求错误");
+                            }
+                        });
+                    }
+                })
+            }
+        })
+    })
+</script>
+{% endblock %}

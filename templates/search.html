@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}xxx用户查询{% endblock %}
+{% block page_content %}
+    <!--搜索框-->
+    <div id="nav-main" style="zoom: 1.1125;">
+        <div id="search">
+            <div class="search_title">xxx用户查询</div>
+            <div id="searchout">
+                <div id="searchform">
+                    <!--  <div id="search_option">手机号：</div>-->
+                    <input type="text" id="search_input" name="search" autocomplete="off" placeholder="请输入您的手机号">
+                    <div id="searchbutton"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="user_table">
+
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        $("#searchbutton").on('click', function (res) {
+            let userMobile = $("#search_input").val()
+            if (userMobile.length === 0) {
+                layer.msg('请输入手机号！', {icon: 5})
+            } else if (userMobile.length !== 11) {
+                layer.msg('手机号格式错误！', {icon: 5})
+            } else {
+                $.get('/api/get/customer', {'userMobile': userMobile}, function (res) {
+                    if (res.code === 0) {
+                        window.location.href = '/get/customerDetail?userMobile=' + userMobile
+                    } else {
+                        layer.msg(res.msg, {icon: 5})
+                    }
+                })
+            }
+        })
+    </script>
+{% endblock %}
