@@ -32,12 +32,16 @@
                     <span>{{ customer_info["package"] }}</span>
                 </div>
                 <div class="layui-col-xs4 layui-col-sm4 layui-col-md3">
-                    <label for="">套餐剩余次数：</label>
+                    <label for="">剩余次数：</label>
                     {% if customer_info["package_remain"] <=5 %}
                         <span style="color: red">{{ customer_info["package_remain"] }} 次</span>
                     {% else %}
                         <span style="color: green">{{ customer_info["package_remain"] }} 次</span>
                     {% endif %}
+                </div>
+                <div class="layui-col-xs4 layui-col-sm4 layui-col-md3">
+                    <label for="">购买时间：</label>
+                    <span>{{ customer_info["purchase_time"] }}</span>
                 </div>
             </div>
         </div>
@@ -63,12 +67,19 @@
         </div>
         {{ '{{# } }}' }}
     </script>
+
+    <!--塑形后体重模板-->
+    <script type="text/html" id="">
+        {{ '{{# if(d.weight>0){ }}'|safe }}
+        {{ '{{ d.weight }}' }}
+        {{ '{{# }else{ }}' }}
+        <input type="text" value=''>
+        {{ '{{# } }}' }}
+    </script>
 {% endblock %}
 
 {% block script %}
     <script type="text/javascript">
-
-
         layui.use('table', function () {
             let table = layui.table,
                 userMobile = "{{user_mobile}}";
@@ -95,19 +106,57 @@
                 let customer_mobile = data['mobile'],
                     customer_name = data['name'],
                     shape_time = data['shape_time'];
+                //customer_weight = data['weight'];
 
                 if (layEvent === 'sign') {
                     layer.open({
-                        type: 2,
-                        title: '顾客姓名: ' + customer_name + ' | 手机号：' + customer_mobile + ' | 塑形时间：' + shape_time,
-                        content: '/put/signatureAdd?customer_mobile=' + customer_mobile + '&customer_name=' + customer_name + '&shape_time=' + shape_time,
-                        scrollbar: false,
-                        area: ['600px', '300px'],
+                        title: '本次塑形后体重',
+                        type: 1,
+                        content: '<div style="height:30px;margin:10px" ><input id="customerWeightAfter" style="weight:100%;padding:5px" type="text" value=""> KG</div>',
+                        area: ['auto', 'auto'],
+                        offset: '20%',
+                        success: function () {
+                            let input = document.getElementById('customerWeightAfter');
+
+                            input.addEventListener('keyup', addCustomerWeight);
+                            input.focus();
+
+                            function addCustomerWeight(e) {
+                                if (e.key === 'Enter') {
+                                    let customer_weight = input.value;
+                                    if (!customer_weight) {
+                                        return false;
+                                    }
+
+                                    $.post('/api/put/customerWeightAdd', {
+                                        'customer_weight': input.value,
+                                        'customer_mobile': customer_mobile,
+                                        'customer_name': customer_name,
+                                        'shape_time': shape_time
+                                    }, function (res) {
+                                        if (res.code === 0) {
+                                            layer.closeAll();
+                                            layer.open({
+                                                type: 2,
+                                                title: '顾客姓名: ' + customer_name + ' | 手机号：' + customer_mobile + ' | 塑形时间：' + shape_time,
+                                                content: '/put/signatureAdd?customer_mobile=' + customer_mobile + '&customer_name=' + customer_name + '&shape_time=' + shape_time,
+                                                scrollbar: false,
+                                                area: ['800px', '400px'],
+                                                offset: ['20%'],
+                                            })
+                                        } else {
+                                            layer.msg(res.msg, {icon: 2, time: 2000, offset: ['20%']})
+                                        }
+                                    })
+
+                                }
+                            }
+                        }
                     })
                 } else if (layEvent === 'getSign') {
                     layer.open({
                         type: 1,
-                        title: '客户签名',
+                        title: '顾客签名',
                         content: '<img style="padding-bottom: 10px" src="data:image/png;base64,' + data['signature'] + '">',
                         area: ['auto', 'auto'],
                         offset: '20%',
@@ -116,8 +165,12 @@
             })
         })
 
+
+        // 用户体重变化曲线
         let userMobile = "{{ user_mobile }}";
         let char = echarts.init(document.getElementById('customerWeight'));
+
+        char.showLoading();
 
         $.get('/api/get/customerWeight?userMobile=' + userMobile, function (res) {
             let customer_weight_data = res.data,
@@ -160,10 +213,11 @@
                 yAxis: {
                     type: 'value'
                 },
-                //series: [{name: 'xiaomei', type: 'line', data: [10, 20, 30, 4, 5, 6]}]
+                //series: [{name: 'xiaomei',smooth:true, type: 'line', data: [10, 20, 30, 4, 5, 6]}]
                 series: series_data
             }
-            char.setOption(options)
+            char.hideLoading();
+            char.setOption(options);
         })
     </script>
 {% endblock %}

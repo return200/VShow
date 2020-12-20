@@ -6,7 +6,7 @@
 # __time__ = 15:46
 from sanic import Blueprint
 from api.login import gen_login_vcode, login
-from api.customer import get_customer, get_customer_detail,get_customer_weight
+from api.customer import get_customer, get_customer_detail, get_customer_weight, add_customer_weight
 from api.signature import add_signature
 
 data_api_bp = Blueprint("data_api", url_prefix="/api", strict_slashes=True)
@@ -19,7 +19,8 @@ route_rule_list = [
     (get_customer, "/get/customer", ["GET"]),
     (get_customer_detail, "/get/customerDetail", ["GET"]),
     (add_signature, "/put/signatureAdd", ["POST"]),
-    (get_customer_weight, "/get/customerWeight",["GET"]),
+    (get_customer_weight, "/get/customerWeight", ["GET"]),
+    (add_customer_weight, "/put/customerWeightAdd", ["POST"])
 
     # (getrank, "/get/rank", ["GET"]),
     # (gethosts, "/get/hosts", ["GET"]),

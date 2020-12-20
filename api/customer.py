@@ -10,10 +10,13 @@ from common import mysql_pool
 from common_enums import YesNoStatus
 from config import tb_customer, ResCode, tb_customer_detail
 from lib.pub import resp_json
-from lib.pub_mysql import query_one, query_mysql
+from lib.pub_mysql import query_one, query_mysql, raw_update_mysql
 
 
 async def get_customer(request):
+    """
+    查询用户是否存在
+    """
     params = request.get("params")
     user_mobile = params.get("userMobile")
 
@@ -29,6 +32,9 @@ async def get_customer(request):
 
 
 async def get_customer_detail(request):
+    """
+    用户塑形历史
+    """
     params = request.get("params")
     page = params.get("page")
     limit = params.get("limit")
@@ -41,7 +47,7 @@ async def get_customer_detail(request):
                             WHERE t2.mobile='{user_mobile}' AND t1.is_delete={YesNoStatus.NO}
                             ORDER BY shape_time DESC
                             LIMIT {(int(page) - 1) * int(limit)}, {limit}"""
-    print(customer_detail_sql)
+
     customer_detail_data = await query_mysql(mysql_pool=mysql_pool, sql=customer_detail_sql)
 
     customer_detail_count_sql = f"""SELECT COUNT(1) as count
@@ -59,6 +65,9 @@ async def get_customer_detail(request):
 
 
 async def get_customer_weight(request):
+    """
+    用户体重变化曲线
+    """
     params = request.get("params")
     user_mobile = params.get("userMobile")
 
@@ -71,7 +80,7 @@ async def get_customer_weight(request):
             FROM {tb_customer_detail} AS t1
             INNER JOIN {tb_customer} AS t2 ON t1.name_id=t2.id
             WHERE t2.mobile='{user_mobile}' AND t1.is_delete={YesNoStatus.NO} AND t2.is_delete={YesNoStatus.NO}
-            ORDER BY t1.shape_time DESC
+            ORDER BY t1.shape_time
             LIMIT 30"""
 
     data = await query_mysql(mysql_pool=mysql_pool, sql=sql, request=request)
@@ -85,11 +94,44 @@ async def get_customer_weight(request):
         customer_weight_tmp_date.append(tmp_date)
         customer_weight_tmp_data_item.append(weight)
 
-    customer_weight_tmp_data["name"] = "line"
+    customer_weight_tmp_data["name"] = "体重"
     customer_weight_tmp_data["type"] = "line"
+    customer_weight_tmp_data["smooth"] = True
     customer_weight_tmp_data["data"] = customer_weight_tmp_data_item
 
     customer_weight_data["date"] = customer_weight_tmp_date
     customer_weight_data["data"] = customer_weight_tmp_data
 
     return resp_json(data=customer_weight_data)
+
+
+async def add_customer_weight(request):
+    """
+    用户塑形后体重
+    """
+    params = request.get("params")
+    customer_mobile = params.get("customer_mobile")
+    customer_name = params.get("customer_name")
+    shape_time = params.get("shape_time")
+    customer_weight = params.get("customer_weight")
+
+    try:
+        customer_weight = float(customer_weight)
+    except ValueError as e:
+        pass
+
+    sql = f"""UPDATE {tb_customer_detail} AS t1
+            INNER JOIN {tb_customer} AS t2 ON t1.name_id=t2.id
+            SET t1.weight={customer_weight}
+            WHERE t1.shape_time='{shape_time}'
+            AND t2.mobile={customer_mobile}
+            AND t2.name='{customer_name}'
+            AND t1.is_delete={YesNoStatus.NO}
+            AND t2.is_delete={YesNoStatus.NO}"""
+
+    if not customer_weight or not isinstance(customer_weight, float):
+        return resp_json(ResCode.PARAM_ERR, msg='体重输入错误，请输入数字！')
+
+    await raw_update_mysql(mysql_pool, sql, request)
+
+    return resp_json()

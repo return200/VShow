@@ -39,6 +39,7 @@ def resp_json(status: int = ResCode.OK, count: int = 0, msg: str = None, data=No
         res["data"] = data
     if count is not None:
         res["count"] = count
+
     return response.json(res, headers=headers)
 
 

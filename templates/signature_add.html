@@ -31,7 +31,7 @@
 <script type="text/javascript">
     $(function () {
         var $sigdiv = $("#signature");
-        $sigdiv.jSignature(); // 初始化jSignature插件-属性用","隔开
+        $sigdiv.jSignature({'height':240,'width':778}); // 初始化jSignature插件-属性用","隔开
         // $sigdiv.jSignature({'decor-color':'red'}); // 初始化jSignature插件-设置横线颜色
         // $sigdiv.jSignature({'lineWidth':"6"});// 初始化jSignature插件-设置横线粗细
         // $sigdiv.jSignature({"decor-color":"transparent"});// 初始化jSignature插件-去掉横线
@@ -48,7 +48,6 @@
                 'shape_time': '{{ shape_time }}',
                 'signature': signature[1]
             }, function (res) {
-                console.log(res);
                 if (res.code === 0) {
                     layer.msg('签名成功！', {
                         icon: 1,

@@ -18,6 +18,9 @@ body {
     background-color: #FFFFFF;
 }
 
+.layui-none{
+    background-color: #FFFFFF;
+}
 p, input, div, span, li {
     font-family: "微软雅黑", Arial;
 }

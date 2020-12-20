@@ -28,7 +28,6 @@ async def add_signature(request):
             AND t1.is_delete={YesNoStatus.NO}
             AND t2.is_delete={YesNoStatus.NO}"""
 
-    print(sql)
     res = await raw_update_mysql(mysql_pool, sql, request)
 
     if res == 0:
